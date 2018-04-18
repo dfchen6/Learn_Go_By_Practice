@@ -7,6 +7,8 @@ import (
 	"io"
 	"bufio"
 	"strings"
+	"time"
+	"log"
 )
 
 type Record struct {
@@ -36,16 +38,35 @@ func main() {
 
 	var score = 0
 	var total = len(problemSet)
+	var counter = 1
 
-	reader := bufio.NewReader(os.Stdin)
+	inputChan := make(chan string)
+	go getInput(inputChan)
 
 	for k, v := range problemSet {
-		fmt.Printf(k + ": ")
-		text,_ := reader.ReadString('\n')
-		if (strings.TrimRight(text, "\n") == string(v)) {
-			score++
+		fmt.Printf("Problem %v: %v = ", counter, k)
+		counter++
+		select {
+		case text := <-inputChan:
+			if (strings.TrimRight(text, "\n") == string(v)) {
+				score++
+			}
+		case <- time.After(2000 * time.Millisecond):
+			fmt.Printf("Total socre: %v/%v\n", score, total)
+			return
 		}
 	}
 
 	fmt.Printf("Total socre: %v/%v\n", score, total)
+}
+
+func getInput(input chan string) {
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		text, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+		input <- text
+	}
 }
