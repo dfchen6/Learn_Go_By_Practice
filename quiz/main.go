@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
+	"flag"
 	"os"
 	"io"
 	"bufio"
@@ -11,16 +12,13 @@ import (
 	"log"
 )
 
-type Record struct {
-	given string
-	actual string
-	index int
-}
-
 func main() {
-	filePath := "problems.csv"
+	timeOut := flag.Int("timeout", 2, "time out without any input in seconds")
+	filePath := flag.String("filepath", "problems.csv", "path of the file to read")
+	flag.Parse()
+
 	// load csv file
-	f,_ := os.Open(filePath)
+	f,_ := os.Open(*filePath)
 
 	problemSet := make(map[string]string)
 
@@ -51,12 +49,11 @@ func main() {
 			if (strings.TrimRight(text, "\n") == string(v)) {
 				score++
 			}
-		case <- time.After(2000 * time.Millisecond):
+		case <- time.After(time.Duration(*timeOut) * time.Second):
 			fmt.Printf("Total socre: %v/%v\n", score, total)
 			return
 		}
 	}
-
 	fmt.Printf("Total socre: %v/%v\n", score, total)
 }
 
